@@ -169,6 +169,36 @@ nav a:hover, nav li.active-tab a {
     margin-top: 60px;
 }
 
+#countdown-timer {
+    font-family: 'Montserrat', sans-serif;
+    background: rgba(255, 183, 197, 0.13);
+    border-radius: 12px;
+    padding: 18px 0;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 8px rgba(255, 183, 197, 0.08);
+}
+
+#timezone-select {
+    background: #fff;
+    border: 1px solid #ffd6e0;
+    color: var(--text-dark);
+    font-family: inherit;
+    font-size: 1rem;
+    border-radius: 6px;
+    padding: 6px 12px;
+    margin-bottom: 8px;
+    outline: none;
+    transition: border 0.2s;
+}
+#timezone-select:focus {
+    border: 1.5px solid var(--deep-blossom);
+}
+#countdown-event-time {
+    font-size: 1rem;
+    color: #888;
+    margin-top: 2px;
+}
+
 .section-title {
     text-align: center;
     margin-bottom: 40px;
