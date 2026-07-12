@@ -21,6 +21,83 @@ document.addEventListener('DOMContentLoaded', () => {
         defaultTz: 'America/Chicago', // Central Time
     };
 
+    // --- Live Hackathon Schedule Logic ---
+    // Define the schedule (times in 24h format, Central Time)
+    const SCHEDULE = [
+        {
+            time: '15:30',
+            label: 'Arrival & Fuel Up',
+            desc: 'Check in at the Library Media Center desk, find your team table, and grab complimentary pizza slices and drinks.'
+        },
+        {
+            time: '15:45',
+            label: 'Opening Ceremony',
+            desc: 'Introduction of the mentor staff, rules review, and reveal of the challenge details.'
+        },
+        {
+            time: '16:00',
+            label: 'Hacking Sprint',
+            desc: 'Brainstorming ideas, confirming environments, and executing core software engineering.'
+        },
+        {
+            time: '18:15',
+            label: 'Code Freeze',
+            desc: 'Hand tools down. All project modifications stop, and teams display completed screens.'
+        },
+        {
+            time: '18:20',
+            label: 'Exhibition Judging',
+            desc: 'Judges circulate the space. Teams deliver live project feature demonstrations.'
+        },
+        {
+            time: '18:45',
+            label: 'Closing Ceremony',
+            desc: 'Distribution of rank certificates and top-tier technical gear/gift card prizes.'
+        }
+    ];
+
+    // Helper to get Date object for a schedule item in the selected timezone
+    function getScheduleDate(item, tz) {
+        // Use event date (YYYY-MM-DD) + item.time (HH:mm)
+        const dateStr = EVENT_START.iso.split('T')[0] + 'T' + item.time + ':00';
+        // Convert to Date in selected timezone
+        try {
+            return new Date(new Date(dateStr).toLocaleString('en-US', { timeZone: tz }));
+        } catch {
+            return new Date(dateStr);
+        }
+    }
+
+    function renderLiveSchedule() {
+        const tz = timezoneSelect ? timezoneSelect.value : EVENT_START.defaultTz;
+        const now = new Date();
+        let foundCurrent = false;
+        let html = '';
+        SCHEDULE.forEach((item, idx) => {
+            const schedDate = getScheduleDate(item, tz);
+            const nextSchedDate = SCHEDULE[idx+1] ? getScheduleDate(SCHEDULE[idx+1], tz) : null;
+            let status = '';
+            if (now >= schedDate && (!nextSchedDate || now < nextSchedDate)) {
+                status = 'current';
+                foundCurrent = true;
+            } else if (now < schedDate && !foundCurrent) {
+                status = 'upcoming';
+            } else if (now > schedDate) {
+                status = 'done';
+            }
+            html += `<div class="timeline-item live-item ${status}">
+                <div class="time">${item.time}</div>
+                <div><b>${item.label}:</b> ${item.desc}
+                    ${status === 'current' ? '<span class="live-status live-now">Happening Now</span>' : ''}
+                    ${status === 'upcoming' ? '<span class="live-status live-upcoming">Up Next</span>' : ''}
+                    ${status === 'done' ? '<span class="live-status live-done">Done</span>' : ''}
+                </div>
+            </div>`;
+        });
+        const liveScheduleDiv = document.getElementById('live-schedule');
+        if (liveScheduleDiv) liveScheduleDiv.innerHTML = html;
+    }
+
     // Polyfill for Intl API timezones fallback
     function getTimeZones() {
         if (window.Intl && typeof Intl.DateTimeFormat === 'function') {
@@ -84,8 +161,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         // Set default
         timezoneSelect.value = EVENT_START.defaultTz;
-        timezoneSelect.addEventListener('change', updateCountdown);
+        timezoneSelect.addEventListener('change', () => {
+            updateCountdown();
+            renderLiveSchedule();
+        });
         updateCountdown();
-        setInterval(updateCountdown, 1000);
+        renderLiveSchedule();
+        setInterval(() => {
+            updateCountdown();
+            renderLiveSchedule();
+        }, 1000);
+    } else if (document.getElementById('live-schedule')) {
+        // Fallback: just render schedule if no timezone select
+        renderLiveSchedule();
     }
 });
