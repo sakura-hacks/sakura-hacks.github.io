@@ -14,16 +14,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- Live Countdown Logic ---
-    // Set your event start time here (local time: Central Time, e.g. 2026-09-18T15:30:00-05:00)
+    // --- Event start ---
+    // Change the date/time here. The offset is Central Time (-06:00 in winter, -05:00 in summer).
     const EVENT_START = {
         iso: '2026-12-19T15:30:00', // Saturday, Dec 19, 2026 at 3:30 PM
-        offset: '-06:00', // Central Standard Time (December)
-        defaultTz: 'America/Chicago', // Central Time
+        offset: '-06:00'            // Central Standard Time (December)
     };
+    const EVENT_MS = Date.parse(EVENT_START.iso + EVENT_START.offset);
 
-    // --- Live Hackathon Schedule Logic ---
-    // Define the schedule (times in 24h format, Central Time)
+    // --- Live Hackathon Schedule ---
+    // Times in 24h format, Central Time
     const SCHEDULE = [
         {
             time: '15:30',
@@ -57,21 +57,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     ];
 
-    // Helper to get Date object for a schedule item in the selected timezone
-    function getScheduleDate(item, tz) {
-        // Use event date (YYYY-MM-DD) + item.time (HH:mm)
-        // Build the absolute time of this schedule item in Central Time
+    function getScheduleDate(item) {
         return new Date(EVENT_START.iso.split('T')[0] + 'T' + item.time + ':00' + EVENT_START.offset);
     }
 
     function renderLiveSchedule() {
-        const tz = timezoneSelect ? timezoneSelect.value : EVENT_START.defaultTz;
+        const liveScheduleDiv = document.getElementById('live-schedule');
+        if (!liveScheduleDiv) return;
         const now = new Date();
         let foundCurrent = false;
         let html = '';
         SCHEDULE.forEach((item, idx) => {
-            const schedDate = getScheduleDate(item, tz);
-            const nextSchedDate = SCHEDULE[idx+1] ? getScheduleDate(SCHEDULE[idx+1], tz) : null;
+            const schedDate = getScheduleDate(item);
+            const nextSchedDate = SCHEDULE[idx + 1] ? getScheduleDate(SCHEDULE[idx + 1]) : null;
             let status = '';
             if (now >= schedDate && (!nextSchedDate || now < nextSchedDate)) {
                 status = 'current';
@@ -81,84 +79,86 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (now > schedDate) {
                 status = 'done';
             }
-            html += `<div class="timeline-item live-item ${status}">
-                <div class="time">${item.time}</div>
-                <div><b>${item.label}:</b> ${item.desc}
-                    ${status === 'current' ? '<span class="live-status live-now">Happening Now</span>' : ''}
-                    ${status === 'upcoming' ? '<span class="live-status live-upcoming">Up Next</span>' : ''}
-                    ${status === 'done' ? '<span class="live-status live-done">Done</span>' : ''}
-                </div>
-            </div>`;
+            let badge = '';
+            if (status === 'current') badge = '<span class="live-status live-now">Happening Now</span>';
+            if (status === 'upcoming') badge = '<span class="live-status live-upcoming">Up Next</span>';
+            if (status === 'done') badge = '<span class="live-status live-done">Done</span>';
+            html += '<div class="timeline-item live-item ' + status + '">' +
+                '<div class="time">' + item.time + '</div>' +
+                '<div><b>' + item.label + ':</b> ' + item.desc + ' ' + badge + '</div>' +
+                '</div>';
         });
-        const liveScheduleDiv = document.getElementById('live-schedule');
-        if (liveScheduleDiv) liveScheduleDiv.innerHTML = html;
+        liveScheduleDiv.innerHTML = html;
     }
 
-    // Polyfill for Intl API timezones fallback
-    function getTimeZones() {
-        if (window.Intl && typeof Intl.DateTimeFormat === 'function') {
-            try {
-                return Intl.supportedValuesOf('timeZone');
-            } catch (e) {
-                // fallback below
-            }
-        }
-        // Fallback: common timezones
-        return [
-            'America/Chicago', 'America/New_York', 'America/Denver', 'America/Los_Angeles',
-            'Europe/London', 'Europe/Paris', 'Asia/Kolkata', 'Asia/Tokyo', 'Australia/Sydney',
-            'UTC'
-        ];
+    if (document.getElementById('live-schedule')) {
+        renderLiveSchedule();
+        setInterval(renderLiveSchedule, 30000);
     }
 
-    function pad(n) { return n < 10 ? '0' + n : n; }
+    // --- Countdown (days / hours / minutes / seconds boxes) ---
+    const countdown = document.getElementById('countdown');
 
-    function formatCountdown(ms) {
-        if (ms <= 0) return 'Event Started!';
-        let s = Math.floor(ms / 1000);
-        const days = Math.floor(s / 86400); s %= 86400;
-        const hrs = Math.floor(s / 3600); s %= 3600;
-        const min = Math.floor(s / 60); s %= 60;
-        return `${days}d ${pad(hrs)}h ${pad(min)}m ${pad(s)}s`;
-    }
+    function pad(n) { return n < 10 ? '0' + n : String(n); }
 
     function updateCountdown() {
-        const tz = timezoneSelect.value;
-        const now = new Date();
-        // Absolute event start (Central Time), shown in the viewer's chosen timezone
-        const eventTime = Date.parse(EVENT_START.iso + EVENT_START.offset);
-        const diff = eventTime - now.getTime();
-        countdownTimer.textContent = formatCountdown(diff);
-        const eventTimeStr = new Date(eventTime).toLocaleString([], { timeZone: tz, dateStyle: 'full', timeStyle: 'short' });
-        countdownEventTime.textContent = `Event starts at: ${eventTimeStr} (${tz.replace('_',' ')})`;
+        const diff = EVENT_MS - Date.now();
+        if (diff <= 0) {
+            countdown.innerHTML = '<div class="countdown-done">The hackathon has started!</div>';
+            return false;
+        }
+        const s = Math.floor(diff / 1000);
+        const values = {
+            days: String(Math.floor(s / 86400)),
+            hours: pad(Math.floor((s % 86400) / 3600)),
+            minutes: pad(Math.floor((s % 3600) / 60)),
+            seconds: pad(s % 60)
+        };
+        Object.keys(values).forEach(unit => {
+            const el = countdown.querySelector('[data-unit="' + unit + '"]');
+            if (el && el.textContent !== values[unit]) el.textContent = values[unit];
+        });
+        return true;
     }
 
-    // Populate timezone dropdown
-    const timezoneSelect = document.getElementById('timezone-select');
-    const countdownTimer = document.getElementById('countdown-timer');
-    const countdownEventTime = document.getElementById('countdown-event-time');
-    if (timezoneSelect && countdownTimer && countdownEventTime) {
-        const tzs = getTimeZones();
-        tzs.forEach(tz => {
-            const opt = document.createElement('option');
-            opt.value = tz;
-            opt.textContent = tz.replace('_',' ');
-            timezoneSelect.appendChild(opt);
-        });
-        // Set default
-        timezoneSelect.value = EVENT_START.defaultTz;
-        timezoneSelect.addEventListener('change', () => {
-            updateCountdown();
-            renderLiveSchedule();
-        });
-        updateCountdown();
-        renderLiveSchedule();
-        setInterval(() => {
-            updateCountdown();
-            renderLiveSchedule();
-        }, 1000);
-    } else if (document.getElementById('live-schedule')) {
-        // Fallback: just render schedule if no timezone select
-        renderLiveSchedule();
+    if (countdown) {
+        if (updateCountdown()) {
+            const timer = setInterval(() => {
+                if (!updateCountdown()) clearInterval(timer);
+            }, 1000);
+        }
+    }
+
+    // --- Falling sakura petals ---
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduceMotion) {
+        const COLORS = ['#FFB7C5', '#FFC8D3', '#FF9DB3', '#FFD6DF'];
+        const count = window.innerWidth < 600 ? 9 : 16;
+        const layer = document.createElement('div');
+        layer.className = 'petals';
+        layer.setAttribute('aria-hidden', 'true');
+
+        function rand(min, max) { return min + Math.random() * (max - min); }
+
+        for (let i = 0; i < count; i++) {
+            const petal = document.createElement('div');
+            petal.className = 'petal';
+            const dur = rand(10, 19);
+            petal.style.setProperty('--size', rand(11, 21).toFixed(1) + 'px');
+            petal.style.setProperty('--dur', dur.toFixed(1) + 's');
+            petal.style.setProperty('--delay', (-rand(0, dur)).toFixed(1) + 's');
+            petal.style.setProperty('--drift', rand(-60, 90).toFixed(0) + 'px');
+            petal.style.setProperty('--sway-dur', rand(2.4, 4.6).toFixed(1) + 's');
+            petal.style.setProperty('--op', rand(0.55, 0.9).toFixed(2));
+            petal.style.left = rand(0, 100).toFixed(1) + '%';
+            const color = COLORS[i % COLORS.length];
+            petal.innerHTML =
+                '<div class="petal-inner"><svg viewBox="0 0 20 24">' +
+                '<path d="M10 23 C3 18 0 12 2 6 C3.5 2 7 0.5 10 3.2 C13 0.5 16.5 2 18 6 C20 12 17 18 10 23 Z" fill="' + color + '"/>' +
+                '<path d="M10 21.5 C9.2 16 9.4 9.5 10 4.5" stroke="#FF8FA8" stroke-width="0.7" fill="none" opacity="0.45"/>' +
+                '</svg></div>';
+            layer.appendChild(petal);
+        }
+        document.body.prepend(layer);
     }
 });
