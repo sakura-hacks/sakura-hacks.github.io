@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sakura Hacks | Home</title>
     <link rel="icon" type="image/png" href="images/logo.png">
+    <meta name="description" content="Sakura Hacks: a free, beginner-friendly hackathon for Naperville middle schoolers in grades 6-8. Saturday, December 19, 2026, 3:30-7:00 PM at Naperville Central High School.">
+    <meta name="theme-color" content="#FFB7C5">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Sakura Hacks">
+    <meta property="og:title" content="Sakura Hacks | Youth Hackathon, Dec 19">
+    <meta property="og:description" content="Free coding event for grades 6-8 · Saturday, Dec 19, 2026 · 3:30-7:00 PM · Naperville Central High School. Pizza included!">
+    <meta property="og:image" content="https://kar999-fermat.github.io/sakura-hacks/images/logo.png">
+    <meta property="og:url" content="https://kar999-fermat.github.io/sakura-hacks/">
+    <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
 </head>
@@ -26,23 +35,32 @@
     </header>
 
     <div class="container">
-        <!-- Live Countdown Section -->
-        <section class="schedule-section" style="margin-bottom: 32px;">
-            <h2 class="section-title">Live Countdown to Hackathon</h2>
-            <div style="text-align:center; margin-bottom: 18px;">
-                <label for="timezone-select" style="font-weight:600; margin-right:8px;">Timezone:</label>
-                <select id="timezone-select" style="padding:6px 12px; border-radius:6px; border:1px solid #eee; font-size:1rem;"></select>
-            </div>
-            <div id="countdown-timer" style="font-size:2rem; font-weight:700; color:var(--deep-blossom); text-align:center; margin-bottom:10px; letter-spacing:1px;">Loading...</div>
-            <div id="countdown-event-time" style="text-align:center; color:#888; font-size:1rem;"></div>
-        </section>
-
         <section class="hero">
             <div class="status-tag">Next Competition: Saturday, December 19, 2026</div>
             <h1 class="six-letter-desc">Youth Hackathon!</h1>
             <p>Naperville's premier student-led hackathon introducing middle school students to code.</p>
-            <br>
-            <a href="hackathon.html" class="cta-btn" style="font-size: 1.1rem; padding: 12px 30px; display: inline-block;">Explore Event</a>
+            <div class="quick-facts">
+                <span>Grades 6–8</span>
+                <span>100% Free</span>
+                <span>Teams of 3–4</span>
+                <span>No experience needed</span>
+            </div>
+            <div class="hero-actions">
+                <a href="https://forms.gle/vuwVGETzDDGGVvjY8" target="_blank" rel="noopener" class="cta-btn big">Register Now</a>
+                <a href="hackathon.html" class="ghost-btn">Explore Event</a>
+            </div>
+        </section>
+
+        <!-- Live Countdown Section -->
+        <section class="schedule-section">
+            <h2 class="section-title">Countdown to Hackathon</h2>
+            <div id="countdown" class="countdown">
+                <div class="countdown-box"><div class="countdown-num" data-unit="days">--</div><div class="countdown-label">Days</div></div>
+                <div class="countdown-box"><div class="countdown-num" data-unit="hours">--</div><div class="countdown-label">Hours</div></div>
+                <div class="countdown-box"><div class="countdown-num" data-unit="minutes">--</div><div class="countdown-label">Minutes</div></div>
+                <div class="countdown-box"><div class="countdown-num" data-unit="seconds">--</div><div class="countdown-label">Seconds</div></div>
+            </div>
+            <div id="countdown-event-time">Saturday, December 19, 2026 · 3:30 PM Central Time</div>
         </section>
 
         <section class="info-grid">
@@ -67,6 +85,12 @@
                     <button class="accordion-header">Do I need prior coding experience?</button>
                     <div class="accordion-content">
                         <p>Not at all! Our entry track is explicitly built for students who have never typed code before. You will use approachable block-based systems with high school mentors guiding you the entire time.</p>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <button class="accordion-header">How do teams work?</button>
+                    <div class="accordion-content">
+                        <p>Teams are 3–4 students. To be on a team with friends, every teammate registers separately and lists the same team members on the form. Students who sign up on their own will be placed on a team at the event.</p>
                     </div>
                 </div>
                 <div class="accordion-item">
