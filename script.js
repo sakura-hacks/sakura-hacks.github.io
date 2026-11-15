@@ -17,7 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Live Countdown Logic ---
     // Set your event start time here (local time: Central Time, e.g. 2026-09-18T15:30:00-05:00)
     const EVENT_START = {
-        iso: '2026-09-18T15:30:00', // 3:30 PM
+        iso: '2026-12-19T15:30:00', // Saturday, Dec 19, 2026 at 3:30 PM
+        offset: '-06:00', // Central Standard Time (December)
         defaultTz: 'America/Chicago', // Central Time
     };
 
@@ -59,13 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Helper to get Date object for a schedule item in the selected timezone
     function getScheduleDate(item, tz) {
         // Use event date (YYYY-MM-DD) + item.time (HH:mm)
-        const dateStr = EVENT_START.iso.split('T')[0] + 'T' + item.time + ':00';
-        // Convert to Date in selected timezone
-        try {
-            return new Date(new Date(dateStr).toLocaleString('en-US', { timeZone: tz }));
-        } catch {
-            return new Date(dateStr);
-        }
+        // Build the absolute time of this schedule item in Central Time
+        return new Date(EVENT_START.iso.split('T')[0] + 'T' + item.time + ':00' + EVENT_START.offset);
     }
 
     function renderLiveSchedule() {
@@ -129,21 +125,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateCountdown() {
         const tz = timezoneSelect.value;
         const now = new Date();
-        // Convert event time to selected timezone
-        let eventDate;
-        try {
-            eventDate = new Date(
-                new Date(EVENT_START.iso + ':00').toLocaleString('en-US', { timeZone: tz })
-            );
-        } catch {
-            eventDate = new Date(EVENT_START.iso + ':00');
-        }
-        // But we want the event time in the selected tz, so get the offset
-        const eventTime = Date.parse(EVENT_START.iso + ':00Z') + (eventDate.getTime() - Date.parse(EVENT_START.iso + ':00'));
+        // Absolute event start (Central Time), shown in the viewer's chosen timezone
+        const eventTime = Date.parse(EVENT_START.iso + EVENT_START.offset);
         const diff = eventTime - now.getTime();
         countdownTimer.textContent = formatCountdown(diff);
-        // Show event time in selected timezone
-        const eventTimeStr = new Date(EVENT_START.iso + ':00Z').toLocaleString([], { timeZone: tz, dateStyle: 'full', timeStyle: 'short' });
+        const eventTimeStr = new Date(eventTime).toLocaleString([], { timeZone: tz, dateStyle: 'full', timeStyle: 'short' });
         countdownEventTime.textContent = `Event starts at: ${eventTimeStr} (${tz.replace('_',' ')})`;
     }
 
